@@ -1,9 +1,14 @@
 import requests
+import logging
 import cssutils
 
 import ChampionList
 
+cssutils.log.setLevel(logging.CRITICAL)
+
 def RetrieveBuildURL():
+    return "https://u.gg/lol/champions/blitzcrank/build" #Debug
+
     # Retrieve riot API information
     f = open(".config", "r")
     riotName = f.readline().replace('\n', '').replace(' ', '%20')

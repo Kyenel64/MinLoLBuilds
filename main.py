@@ -6,9 +6,9 @@ from bs4 import BeautifulSoup
 import LoL
 
 # GUI Configurations
-overlayMode = False
-opacity = 1
-imgSize = 50
+overlayMode = True
+opacity = 0.5
+imgSize = 30
 xPadding = imgSize / 3
 
 
@@ -20,9 +20,13 @@ soup = BeautifulSoup(req.content, 'html.parser')
 root = Tk()
 root.overrideredirect(overlayMode)
 root.attributes('-alpha', opacity)
+root.attributes('-topmost', True)
+screenWidth = root.winfo_screenwidth()
+screenHeight = root.winfo_screenheight()
+root.geometry('+%d+%d'%(0,screenHeight - (imgSize * 3) - 10))
 root.update()
 
-spriteSheets = [ Image.open("item0.webp"), 0, Image.open("item2.webp"), Image.open("item3.webp"), Image.open("item4.webp") ]
+imageSheets = [ Image.open("Images/item0.webp"), 0, Image.open("Images/item2.webp"), Image.open("Images/item3.webp"), Image.open("Images/item4.webp") ]
 starterItemsTkImage = [0] * 3
 coreItemsTkImage = [0] * 3
 fourthItemOptionsTkImage = [0] * 3
@@ -37,7 +41,7 @@ def DrawItemSet(className):
     for index, item in enumerate(items):
         offset = LoL.RetrieveXYOffset(item)
         spriteSheetIndex = LoL.RetrieveSpriteSheetIndex(item)
-        img = spriteSheets[spriteSheetIndex].crop((offset[0], offset[1], offset[0] + 48, offset[1] + 48)) #48 is size of each sprite
+        img = imageSheets[spriteSheetIndex].crop((offset[0], offset[1], offset[0] + 48, offset[1] + 48)) #48 is size of each sprite
         img = img.resize((imgSize, imgSize), Image.Resampling.LANCZOS)
         
         if (className == 'content-section_content starting-items'): 
