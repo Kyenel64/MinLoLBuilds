@@ -14,7 +14,7 @@ class Configuration:
 # Populate config data
 def ParseConfigFile():
     config = Configuration()
-    f = open(".config")
+    f = open(os.getcwd() + "/.config")
     configJson = json.load(f)
     config.RiotName = configJson["RiotName"]
     config.RiotTag = configJson["RiotTag"]
