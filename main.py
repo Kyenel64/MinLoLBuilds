@@ -2,31 +2,39 @@ import requests
 from tkinter import *
 from PIL import ImageTk, Image
 from bs4 import BeautifulSoup
-import psutil
-import time
-import threading
-import asyncio
+import os
+import json
 
 import LoL
 
-# GUI Configurations
-overlayMode = True
-opacity = 0.5
-imgSize = 30
-xPadding = imgSize / 3
-isLoLRunning = False
+# Create .config file if it does not exist
+if not os.path.isfile(".config"):
+    jsonData = { "RiotName": "", "RiotTag": "", "RiotAPIKey": "", "OverlayMode": True, "Opacity": 0.5, "ItemSize": 30 }
+    jsonData["RiotName"] = input("Riot name: ")
+    jsonData["RiotTag"] = input("Riot tag: ")
+    jsonData["RiotAPIKey"] = input("Riot API Key: ")
+    with open(".config", "w") as out:
+        json.dump(jsonData, out, indent=4)
 
-url = LoL.RetrieveBuildURL()
+# Set Configurations
+f = open(".config")
+config = json.load(f)
+overlayMode = config["OverlayMode"]
+opacity = config["Opacity"]
+imgSize = config["ItemSize"]
+
+url = LoL.RetrieveBuildURL(config)
 req = requests.get(url)
-soup = BeautifulSoup(req.content, 'html.parser')
+soup = BeautifulSoup(req.content, "html.parser")
 
 # Initialize Tkinter
 root = Tk()
 root.overrideredirect(overlayMode)
-root.attributes('-alpha', opacity)
-root.attributes('-topmost', True)
+root.attributes("-alpha", opacity)
+root.attributes("-topmost", True)
 screenHeight = root.winfo_screenheight()
-root.geometry('+%d+%d'%(0,screenHeight - (imgSize * 3) - 10))
+root.geometry("+%d+%d"%(0,screenHeight - (imgSize * 3)))
+root.configure(background="black")
 
 imageSheets = [ Image.open("Images/item0.webp"), 0, Image.open("Images/item2.webp"), Image.open("Images/item3.webp"), Image.open("Images/item4.webp") ]
 starterItemsTkImage = [0] * 3
@@ -37,8 +45,8 @@ sixthItemOptionsTkImage = [0] * 3
 
 
 def DrawItemSet(className):
-    startingItems = soup.find('div', class_=className)
-    items = startingItems.find_all('div', {'class': 'item-img'})
+    startingItems = soup.find("div", class_=className)
+    items = startingItems.find_all("div", {"class": "item-img"})
 
     for index, item in enumerate(items):
         offset = LoL.RetrieveXYOffset(item)
@@ -46,65 +54,38 @@ def DrawItemSet(className):
         img = imageSheets[spriteSheetIndex].crop((offset[0], offset[1], offset[0] + 48, offset[1] + 48)) #48 is size of each sprite
         img = img.resize((imgSize, imgSize), Image.Resampling.LANCZOS)
         
-        if (className == 'content-section_content starting-items'): 
+        if (className == "content-section_content starting-items"): 
             starterItemsTkImage[index] = ImageTk.PhotoImage(img)
-            panel = Label(root, image = starterItemsTkImage[index])
-            panel.grid(row = 0, column = index)
+            panel = Label(root, image = starterItemsTkImage[index], borderwidth=0)
+            panel.grid(row = index, column = 0)
 
-        elif (className == 'core-items'): 
+        elif (className == "core-items"): 
             coreItemsTkImage[index] = ImageTk.PhotoImage(img)
-            panel = Label(root, image = coreItemsTkImage[index])
-            pad = 0
-            if (index == 2):
-                pad = xPadding
-            panel.grid(row = 1, column = index, padx=(0, pad))
-        elif (className == 'content-section_content item-options item-options-1'): 
+            panel = Label(root, image = coreItemsTkImage[index], borderwidth=0)
+            panel.grid(row = index, column = 1, padx=(0, 10))
+        elif (className == "content-section_content item-options item-options-1"): 
             fourthItemOptionsTkImage[index] = ImageTk.PhotoImage(img)
-            panel = Label(root, image = fourthItemOptionsTkImage[index])
-            panel.grid(row = index, column = 4)
-        elif (className == 'content-section_content item-options item-options-2'): 
+            panel = Label(root, image = fourthItemOptionsTkImage[index], borderwidth=0)
+            panel.grid(row = index, column = 2)
+        elif (className == "content-section_content item-options item-options-2"): 
             fifthItemOptionsTkImage[index] = ImageTk.PhotoImage(img)
-            panel = Label(root, image = fifthItemOptionsTkImage[index])
-            panel.grid(row = index, column = 5)
-        elif (className == 'content-section_content item-options item-options-3'): 
+            panel = Label(root, image = fifthItemOptionsTkImage[index], borderwidth=0)
+            panel.grid(row = index, column = 3)
+        elif (className == "content-section_content item-options item-options-3"): 
             sixthItemOptionsTkImage[index] = ImageTk.PhotoImage(img)
-            panel = Label(root, image = sixthItemOptionsTkImage[index])
-            panel.grid(row = index, column = 6)
-    
+            panel = Label(root, image = sixthItemOptionsTkImage[index], borderwidth=0)
+            panel.grid(row = index, column = 4)
 
-def CheckLoLRunning():
-    global isLoLRunning
-    while True:
-        time.sleep(1)
-        for process in psutil.process_iter():
-            if (process.name() == 'League of Legends.exe'):
-                isLoLRunning = True
-                break
-            isLoLRunning = False
 
 
 def main():
-    DrawItemSet('content-section_content starting-items')
-    DrawItemSet('core-items')
-    DrawItemSet('content-section_content item-options item-options-1')
-    DrawItemSet('content-section_content item-options item-options-2')
-    DrawItemSet('content-section_content item-options item-options-3')
+    DrawItemSet("content-section_content starting-items")
+    DrawItemSet("core-items")
+    DrawItemSet("content-section_content item-options item-options-1")
+    DrawItemSet("content-section_content item-options item-options-2")
+    DrawItemSet("content-section_content item-options item-options-3")
 
-    t1 = threading.Thread(target=CheckLoLRunning)
-    t1.start()
-
-    while True:
-        time.sleep(1)
-        print(isLoLRunning)
-        if isLoLRunning:
-            root.deiconify()
-            root.update()
-        else:
-            root.withdraw()
-            root.update()
-        
-
-    t1.join()
+    root.mainloop()
 
 if __name__ == "__main__":
     main()
