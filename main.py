@@ -2,6 +2,10 @@ import requests
 from tkinter import *
 from PIL import ImageTk, Image
 from bs4 import BeautifulSoup
+import psutil
+import time
+import threading
+import asyncio
 
 import LoL
 
@@ -10,7 +14,7 @@ overlayMode = True
 opacity = 0.5
 imgSize = 30
 xPadding = imgSize / 3
-
+isLoLRunning = False
 
 url = LoL.RetrieveBuildURL()
 req = requests.get(url)
@@ -21,10 +25,8 @@ root = Tk()
 root.overrideredirect(overlayMode)
 root.attributes('-alpha', opacity)
 root.attributes('-topmost', True)
-screenWidth = root.winfo_screenwidth()
 screenHeight = root.winfo_screenheight()
 root.geometry('+%d+%d'%(0,screenHeight - (imgSize * 3) - 10))
-root.update()
 
 imageSheets = [ Image.open("Images/item0.webp"), 0, Image.open("Images/item2.webp"), Image.open("Images/item3.webp"), Image.open("Images/item4.webp") ]
 starterItemsTkImage = [0] * 3
@@ -68,6 +70,17 @@ def DrawItemSet(className):
             sixthItemOptionsTkImage[index] = ImageTk.PhotoImage(img)
             panel = Label(root, image = sixthItemOptionsTkImage[index])
             panel.grid(row = index, column = 6)
+    
+
+def CheckLoLRunning():
+    global isLoLRunning
+    while True:
+        time.sleep(1)
+        for process in psutil.process_iter():
+            if (process.name() == 'League of Legends.exe'):
+                isLoLRunning = True
+                break
+            isLoLRunning = False
 
 
 def main():
@@ -77,7 +90,21 @@ def main():
     DrawItemSet('content-section_content item-options item-options-2')
     DrawItemSet('content-section_content item-options item-options-3')
 
-    root.mainloop()
+    t1 = threading.Thread(target=CheckLoLRunning)
+    t1.start()
+
+    while True:
+        time.sleep(1)
+        print(isLoLRunning)
+        if isLoLRunning:
+            root.deiconify()
+            root.update()
+        else:
+            root.withdraw()
+            root.update()
+        
+
+    t1.join()
 
 if __name__ == "__main__":
     main()
