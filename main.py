@@ -11,15 +11,6 @@ class Configuration:
     Opacity: int
     ItemSize: int
 
-# Create .config file if it does not exist
-def InitialSetup():
-    if not os.path.isfile(".config"):
-        jsonData = { "RiotName": "", "RiotTag": "", "OverlayMode": True, "Opacity": 0.5, "ItemSize": 30 }
-        jsonData["RiotName"] = input("Riot name: ")
-        jsonData["RiotTag"] = input("Riot tag: ")
-        with open(".config", "w") as out:
-            json.dump(jsonData, out, indent=4)
-
 # Populate config data
 def ParseConfigFile():
     config = Configuration()
@@ -34,7 +25,6 @@ def ParseConfigFile():
 
 
 def main():
-    InitialSetup() # Ran if no .config file
     config = ParseConfigFile()
 
     url = LoL.RetrieveBuildURL(config)

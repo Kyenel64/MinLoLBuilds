@@ -52,3 +52,6 @@ def RetrieveRecommendedBuild(url):
             if soup.find_all("div", { "class":"champion-recommended-build" }):
                 print("Found live game!")
                 return soup.find_all("div", { "class":"champion-recommended-build" })[0]
+            
+        print("Could not retrieve build data")
+        exit()

@@ -10,7 +10,7 @@ pip install selenium
 IF EXIST ".config" (
     echo Complete 
 ) ELSE (
-    python ./main.py
+    python ./CreateConfigFile.py
 )
 goto:eof
 
