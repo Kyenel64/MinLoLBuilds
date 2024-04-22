@@ -1,3 +1,4 @@
+### This file depends on u.gg and must be updated if there are changes to the website which breaks the program.
 import requests
 import logging
 import cssutils
@@ -29,7 +30,7 @@ def RetrieveBuildURL(config):
 
     return buildURL
 
-# DEPENDS ON U.GG. Retrieves offset from spritesheet
+# Retrieves offset within spritesheet
 def RetrieveXYOffset(divElement):
     i = divElement.find_all("div")[-1]["style"]
     posStr = cssutils.parseStyle(i)["background-position"]
@@ -40,7 +41,7 @@ def RetrieveXYOffset(divElement):
     posY = posStr[1]
     return [int(posX), int(posY)]
 
-# DEPENDS ON U.GG. Retrieves the spritesheet image index
+# Retrieves the spritesheet image index
 def RetrieveSpriteSheetIndex(divElement):
     i = divElement.find_all("div")[-1]["style"]
     posStr = cssutils.parseStyle(i)["background-image"]
