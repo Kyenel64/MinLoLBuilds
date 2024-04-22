@@ -2,4 +2,4 @@
 This script displays a small overlay for your current champion's recommended build through u.gg
 
 # Getting Started
-- First run `setup.bat` to setup packages and Riot information. (TEMP: User must supply their own Riot API for now)
+- First run `setup.bat` to install required packages and set Riot information.

@@ -1,34 +1,19 @@
 ### This file depends on u.gg and must be updated if there are changes to the website which breaks the program.
-import requests
+from selenium.webdriver import Chrome
+from selenium.webdriver.chrome.options import Options
+from bs4 import BeautifulSoup
 import logging
 import cssutils
-
-import ChampionList
+import time
 
 cssutils.log.setLevel(logging.CRITICAL)
 
+MAX_URL_LOAD_ATTEMPTS = 10
+
 def RetrieveBuildURL(config):
-
-    accountData = requests.get("https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/" + config["RiotName"] + "/" + config["RiotTag"] + "?api_key=" + config["RiotAPIKey"]).json()
-    riotPUUID = accountData["puuid"]
-    currentGameData = requests.get("https://na1.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/" + riotPUUID + "?api_key=" + config["RiotAPIKey"]).json()
-    if "status" in currentGameData:
-        if currentGameData["status"]["status_code"] == 404:
-            print("No running game found!")
-            exit()
-
-    for participant in currentGameData["participants"]:
-        if (participant["puuid"] == riotPUUID):
-            currentChampionID = participant["championId"]
-    currentChampionName = ChampionList.ChampionNames[currentChampionID]
-    currentGameMode = currentGameData["gameMode"]
-
-    if (currentGameMode == "CLASSIC"):
-        buildURL = "https://u.gg/lol/champions/" + currentChampionName + "/build"
-    elif (currentGameMode == "ARAM"):
-        buildURL = "https://u.gg/lol/champions/aram/" + currentChampionName + "-aram"
-
-    return buildURL
+    userURL = config.RiotName.replace(" ", "%20") + "-" + config.RiotTag.replace("#", "")
+    url = "https://u.gg/lol/profile/na1/" + userURL + "/live-game"
+    return url
 
 # Retrieves offset within spritesheet
 def RetrieveXYOffset(divElement):
@@ -53,3 +38,17 @@ def RetrieveSpriteSheetIndex(divElement):
     if (fileName == "item2.webp"): return 2
     if (fileName == "item3.webp"): return 3
     if (fileName == "item4.webp"): return 4
+
+# Returns the recommended build json data from u.gg
+def RetrieveRecommendedBuild(url):
+    chromeOptions = Options()  
+    chromeOptions.add_argument("--headless") # Opens the browser up in background
+    with Chrome(options=chromeOptions) as browser:
+        browser.get(url)
+        for i in range(MAX_URL_LOAD_ATTEMPTS):
+            time.sleep(2)
+            html = browser.page_source
+            soup = BeautifulSoup(html, "html.parser")
+            if soup.find_all("div", { "class":"champion-recommended-build" }):
+                print("Found live game!")
+                return soup.find_all("div", { "class":"champion-recommended-build" })[0]
